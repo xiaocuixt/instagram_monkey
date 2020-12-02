@@ -19,7 +19,8 @@
 // 使用说明，在instagram网站userSlugs配置之外的任意页面运行该脚本。
 (function() {
     'use strict';
-    const userSlugs = ["huacnlee", "dashofting", "barackobama", "autocompany.tv", "barrycohenhomes"]
+    const userSlugs = ["reducewastenow", "dashofting", "barackobama", "autocompany.tv", "barrycohenhomes"]
+    const excludeHours = 48;//排除48小时内的posts，可自行修改
     var waitTime = userSlugs.length * 3000// 等待时间每个按照页面3s计算
 
     function prepareIframes(){
@@ -37,6 +38,22 @@
             document.body.append(iframe);
         }
       return false;
+    }
+
+    // 排除48小时内的posts
+    function filterPosts(posts) {
+      let total = 0;
+      let resultPosts = [];
+      for(let i =0; i < posts.length; i++) {
+          let post = posts[i];
+          let fourty_eight_hours_ago = Math.round(new Date().getTime() / 1000) - (excludeHours * 3600);
+          if(posts[i].node.taken_at_timestamp <= fourty_eight_hours_ago && total <= 10){
+            console.log(`posts by ddddddddddddd: ${posts[i].node.shortcode}`);
+            resultPosts.push(posts[i])
+            total += 1
+          }
+      }
+      return resultPosts
     }
 
     function exportMainData(){
@@ -61,7 +78,8 @@
               let followers = iframe.contentWindow._sharedData.entry_data.ProfilePage[0].graphql.user.edge_followed_by.count;
               //console.log(`user name is: ${username}, has followers: ${followers}`)
               //var posts = window._sharedData.entry_data.ProfilePage[0].graphql.user.edge_felix_video_timeline.edges.slice(0, 9)
-              let posts = iframe.contentWindow._sharedData.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges.slice(0, 10);
+              let posts = iframe.contentWindow._sharedData.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
+              posts = filterPosts(posts);
 
               if(posts.length > 0) {
                   for(let i=0; i<posts.length; i++){
